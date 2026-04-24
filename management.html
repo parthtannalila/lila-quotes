@@ -1,0 +1,1181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<link rel="manifest" href="/manifest-mgmt.json">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Lila Quotes">
+<link rel="apple-touch-icon" href="/icon-192.png">
+<meta name="theme-color" content="#3D3D3D">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lila Quotes — Management</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=Syne:wght@600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --orange: #E07830;
+    --orange-light: #f5a05a;
+    --orange-dim: rgba(224,120,48,0.12);
+    --charcoal: #3D3D3D;
+    --charcoal-light: #5a5a5a;
+    --bg: #f7f5f2;
+    --card: #ffffff;
+    --border: #e8e3dc;
+    --text: #2a2a2a;
+    --muted: #9a9a9a;
+    --success: #2d9e6b;
+    --danger: #d94f4f;
+    --pending: #c87d1e;
+    --radius: 14px;
+    --shadow: 0 2px 16px rgba(0,0,0,0.07);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+  }
+
+  /* ── Header ── */
+  header {
+    background: var(--charcoal);
+    padding: 18px 20px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .logo {
+    font-family: 'Syne', sans-serif;
+    font-size: 18px;
+    color: var(--orange);
+  }
+
+  .mgmt-badge {
+    background: var(--orange);
+    color: #fff;
+    font-size: 11px;
+    font-weight: 600;
+    padding: 4px 10px;
+    border-radius: 20px;
+    letter-spacing: 0.3px;
+  }
+
+  /* ── Stats bar ── */
+  .stats-bar {
+    background: var(--charcoal);
+    border-top: 1px solid rgba(255,255,255,0.08);
+    padding: 12px 20px;
+    display: flex;
+    gap: 20px;
+    overflow-x: auto;
+  }
+
+  .stat {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-width: 60px;
+  }
+
+  .stat-num {
+    font-family: 'Syne', sans-serif;
+    font-size: 20px;
+    font-weight: 700;
+    color: #fff;
+    line-height: 1;
+  }
+
+  .stat-num.orange { color: var(--orange); }
+  .stat-num.green { color: #4ecf9a; }
+  .stat-num.red { color: #f07070; }
+
+  .stat-label {
+    font-size: 10px;
+    color: rgba(255,255,255,0.4);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-top: 3px;
+  }
+
+  /* ── Tabs ── */
+  .tabs {
+    display: flex;
+    padding: 14px 16px 0;
+    gap: 6px;
+    max-width: 700px;
+    margin: 0 auto;
+  }
+
+  .tab {
+    padding: 8px 16px;
+    border-radius: 8px 8px 0 0;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    border: 1px solid transparent;
+    border-bottom: none;
+    color: var(--muted);
+    background: transparent;
+    transition: all 0.2s;
+  }
+
+  .tab.active {
+    background: var(--card);
+    color: var(--orange);
+    border-color: var(--border);
+  }
+
+  /* ── Main ── */
+  main {
+    padding: 0 16px 100px;
+    max-width: 700px;
+    margin: 0 auto;
+  }
+
+  .tab-content { display: none; padding-top: 16px; }
+  .tab-content.active { display: block; }
+
+  /* ── Quote cards ── */
+  .quote-card {
+    background: var(--card);
+    border-radius: var(--radius);
+    border: 1px solid var(--border);
+    box-shadow: var(--shadow);
+    margin-bottom: 12px;
+    overflow: hidden;
+    transition: box-shadow 0.2s;
+  }
+
+  .quote-card.new-card {
+    border-color: var(--orange);
+    box-shadow: 0 0 0 2px var(--orange-dim), var(--shadow);
+    animation: fadeIn 0.4s ease;
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .quote-card-header {
+    padding: 14px 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    cursor: pointer;
+    user-select: none;
+  }
+
+  .quote-customer {
+    font-weight: 600;
+    font-size: 15px;
+    color: var(--charcoal);
+  }
+
+  .quote-sp {
+    font-size: 12px;
+    color: var(--orange);
+    font-weight: 500;
+    margin-top: 2px;
+  }
+
+  .quote-meta {
+    font-size: 11px;
+    color: var(--muted);
+    margin-top: 2px;
+  }
+
+  .status-pill {
+    font-size: 11px;
+    font-weight: 600;
+    padding: 4px 10px;
+    border-radius: 20px;
+    white-space: nowrap;
+    flex-shrink: 0;
+    margin-left: 10px;
+  }
+
+  .status-pending { background: rgba(200,125,30,0.12); color: var(--pending); }
+  .status-quoted { background: rgba(45,158,107,0.12); color: var(--success); }
+  .status-denied { background: rgba(217,79,79,0.12); color: var(--danger); }
+
+  .chevron {
+    font-size: 11px;
+    color: var(--muted);
+    transition: transform 0.2s;
+    margin-left: 6px;
+  }
+  .chevron.open { transform: rotate(180deg); }
+
+  .quote-body {
+    display: none;
+    border-top: 1px solid var(--border);
+  }
+
+  .quote-body.open { display: block; }
+
+  /* ── Grade response rows ── */
+  .grade-response-row {
+    padding: 14px 16px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .grade-response-row:last-of-type { border-bottom: none; }
+
+  .grade-name {
+    font-weight: 600;
+    font-size: 14px;
+    color: var(--charcoal);
+    margin-bottom: 8px;
+  }
+
+  .grade-details-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 16px;
+    margin-bottom: 10px;
+  }
+
+  .detail-chip {
+    font-size: 12px;
+    color: var(--charcoal-light);
+  }
+
+  .detail-chip span {
+    color: var(--muted);
+    font-size: 11px;
+    display: block;
+  }
+
+  .price-field {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 4px;
+  }
+
+  .price-field input {
+    flex: 1;
+    padding: 10px 12px;
+    border: 1.5px solid var(--border);
+    border-radius: 8px;
+    font-size: 15px;
+    font-family: 'DM Sans', sans-serif;
+    outline: none;
+    transition: border-color 0.2s;
+    background: var(--bg);
+  }
+
+  .price-field input:focus { border-color: var(--orange); background: #fff; }
+
+  .price-field label {
+    font-size: 12px;
+    color: var(--muted);
+    white-space: nowrap;
+  }
+
+  /* ── Action panel ── */
+  .action-panel {
+    padding: 14px 16px;
+    background: var(--bg);
+    border-top: 1px solid var(--border);
+  }
+
+  .remarks-field {
+    margin-bottom: 10px;
+  }
+
+  .remarks-field label {
+    display: block;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 5px;
+  }
+
+  .remarks-field textarea {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1.5px solid var(--border);
+    border-radius: 8px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    resize: none;
+    outline: none;
+    background: var(--card);
+    transition: border-color 0.2s;
+  }
+
+  .remarks-field textarea:focus { border-color: var(--orange); }
+
+  .action-buttons {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+
+  .btn-quote {
+    padding: 12px;
+    background: var(--success);
+    color: #fff;
+    border: none;
+    border-radius: 10px;
+    font-family: 'Syne', sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s, transform 0.1s;
+  }
+
+  .btn-quote:hover { background: #268a5e; }
+  .btn-quote:active { transform: scale(0.97); }
+
+  .btn-deny {
+    padding: 12px;
+    background: transparent;
+    color: var(--danger);
+    border: 1.5px solid var(--danger);
+    border-radius: 10px;
+    font-family: 'Syne', sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s, transform 0.1s;
+  }
+
+  .btn-deny:hover { background: rgba(217,79,79,0.08); }
+  .btn-deny:active { transform: scale(0.97); }
+
+  .btn-quote:disabled, .btn-deny:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  /* ── Responded state ── */
+  .response-summary {
+    padding: 14px 16px;
+    font-size: 13px;
+  }
+
+  .response-summary.quoted { color: var(--success); }
+  .response-summary.denied { color: var(--danger); }
+
+  .response-summary strong { display: block; font-size: 15px; margin-bottom: 4px; }
+
+  /* ── SP remarks banner ── */
+  .sp-remarks {
+    padding: 10px 16px;
+    background: rgba(224,120,48,0.06);
+    border-bottom: 1px solid var(--border);
+    font-size: 13px;
+    color: var(--charcoal-light);
+    font-style: italic;
+  }
+
+  /* ── Empty ── */
+  .empty-state {
+    text-align: center;
+    padding: 60px 20px;
+    color: var(--muted);
+    font-size: 14px;
+  }
+
+  .empty-icon { font-size: 40px; margin-bottom: 12px; }
+
+  /* ── Loading ── */
+  .loading-bar {
+    height: 3px;
+    background: linear-gradient(90deg, var(--orange), var(--orange-light), var(--orange));
+    background-size: 200% 100%;
+    animation: shimmer 1.2s infinite;
+    border-radius: 2px;
+    margin: 16px 0;
+  }
+
+  @keyframes shimmer {
+    0% { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+  }
+
+  /* ── Toast ── */
+  .toast {
+    position: fixed;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%) translateY(80px);
+    background: var(--charcoal);
+    color: #fff;
+    padding: 12px 20px;
+    border-radius: 10px;
+    font-size: 14px;
+    font-weight: 500;
+    transition: transform 0.3s ease;
+    z-index: 999;
+    white-space: nowrap;
+  }
+
+  .toast.show { transform: translateX(-50%) translateY(0); }
+  .toast.success { background: var(--success); }
+  .toast.error { background: var(--danger); }
+
+  /* ── Notification bell ── */
+  .notif-btn {
+    background: rgba(255,255,255,0.1);
+    border: none;
+    color: #fff;
+    font-size: 18px;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+  }
+
+  .notif-dot {
+    position: absolute;
+    top: 4px;
+    right: 4px;
+    width: 8px;
+    height: 8px;
+    background: var(--orange);
+    border-radius: 50%;
+    display: none;
+  }
+
+  .pending-count-badge {
+    background: var(--orange);
+    color: #fff;
+    font-size: 10px;
+    font-weight: 700;
+    padding: 2px 6px;
+    border-radius: 10px;
+    margin-left: 6px;
+  }
+
+  .filter-bar {
+    display: flex;
+    gap: 6px;
+    margin-bottom: 12px;
+    overflow-x: auto;
+    padding-bottom: 2px;
+  }
+
+  .filter-chip {
+    padding: 5px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+    border: 1.5px solid var(--border);
+    background: var(--card);
+    color: var(--muted);
+    cursor: pointer;
+    white-space: nowrap;
+    transition: all 0.2s;
+  }
+
+  .filter-chip.active {
+    background: var(--orange-dim);
+    border-color: var(--orange);
+    color: var(--orange);
+  }
+
+  .date-separator {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 18px 0 10px;
+  }
+
+  .date-separator-label {
+    font-family: 'Syne', sans-serif;
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    white-space: nowrap;
+  }
+
+  .date-separator-line {
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+
+  /* ── Install banner ── */
+  .install-banner {
+    display: none;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: var(--charcoal);
+    border-top: 2px solid var(--orange);
+    padding: 14px 20px;
+    z-index: 200;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    animation: slideUp 0.3s ease;
+  }
+
+  .install-banner.show { display: flex; }
+
+  @keyframes slideUp {
+    from { transform: translateY(100%); }
+    to { transform: translateY(0); }
+  }
+
+  .install-banner-text {
+    color: #fff;
+    font-size: 13px;
+    flex: 1;
+  }
+
+  .install-banner-text strong {
+    display: block;
+    font-size: 14px;
+    color: var(--orange);
+    margin-bottom: 2px;
+  }
+
+  .btn-install {
+    background: var(--orange);
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    padding: 8px 14px;
+    font-family: 'Syne', sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+
+  .btn-install-dismiss {
+    background: none;
+    border: none;
+    color: var(--muted);
+    font-size: 20px;
+    cursor: pointer;
+    padding: 0 4px;
+  }
+
+
+  /* ── Counter bid styles ── */
+  .counter-banner {
+    background: rgba(224,120,48,0.08);
+    border: 1.5px solid var(--orange);
+    border-radius: 10px;
+    padding: 12px 14px;
+    margin: 12px 16px;
+  }
+
+  .counter-banner-label {
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--orange);
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+    margin-bottom: 6px;
+  }
+
+  .counter-price-display {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--orange);
+    margin-bottom: 4px;
+  }
+
+  .counter-reason {
+    font-size: 13px;
+    color: var(--charcoal-light);
+    font-style: italic;
+  }
+
+  .status-counter_pending { background: rgba(224,120,48,0.12); color: var(--orange); }
+  .status-final { background: rgba(45,158,107,0.12); color: var(--success); }
+  .status-final_denied { background: rgba(217,79,79,0.12); color: var(--danger); }
+
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">Lila Quotes · Management</div>
+  <div style="display:flex;align-items:center;gap:8px">
+    <button class="notif-btn" id="notifBtn" onclick="requestNotifPermission()" title="Enable notifications">
+      🔔<span class="notif-dot" id="notifDot"></span>
+    </button>
+    <div class="mgmt-badge">Management</div>
+  </div>
+</header>
+
+<!-- Stats -->
+<div class="stats-bar">
+  <div class="stat">
+    <div class="stat-num orange" id="statPending">—</div>
+    <div class="stat-label">Pending</div>
+  </div>
+  <div class="stat">
+    <div class="stat-num green" id="statQuoted">—</div>
+    <div class="stat-label">Quoted</div>
+  </div>
+  <div class="stat">
+    <div class="stat-num red" id="statDenied">—</div>
+    <div class="stat-label">Denied</div>
+  </div>
+  <div class="stat">
+    <div class="stat-num" id="statTotal">—</div>
+    <div class="stat-label">Total</div>
+  </div>
+  <div class="stat">
+    <div class="stat-num green" id="statConcluded">—</div>
+    <div class="stat-label">Concluded</div>
+  </div>
+  <div class="stat">
+    <div class="stat-num red" id="statLost">—</div>
+    <div class="stat-label">Lost</div>
+  </div>
+</div>
+
+<!-- Tabs -->
+<div class="tabs">
+  <button class="tab active" onclick="switchTab('pending')">
+    Pending <span class="pending-count-badge" id="pendingBadge">0</span>
+  </button>
+  <button class="tab" onclick="switchTab('all')">All Requests</button>
+</div>
+
+<main>
+  <!-- Pending tab -->
+  <div class="tab-content active" id="tab-pending">
+    <div class="filter-bar" id="spFilterBar"></div>
+    <div id="pendingContainer"><div class="loading-bar"></div></div>
+  </div>
+
+  <!-- All tab -->
+  <div class="tab-content" id="tab-all">
+    <div class="filter-bar" id="statusFilterBar">
+      <div class="filter-chip active" onclick="setStatusFilter('all', this)">All</div>
+      <div class="filter-chip" onclick="setStatusFilter('pending', this)">Pending</div>
+      <div class="filter-chip" onclick="setStatusFilter('quoted', this)">Quoted</div>
+      <div class="filter-chip" onclick="setStatusFilter('denied', this)">Denied</div>
+    </div>
+    <div class="filter-bar" id="allSpFilterBar"></div>
+    <div id="allContainer"><div class="loading-bar"></div></div>
+  </div>
+</main>
+
+<div class="toast" id="toast"></div>
+
+<script type="module">
+  import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+  import { getFirestore, collection, doc, updateDoc, query, orderBy, onSnapshot, serverTimestamp }
+    from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+
+  // ── PASTE YOUR FIREBASE CONFIG HERE ──
+  const firebaseConfig = {
+    apiKey: "AIzaSyBwH3zGwfuMDHLvaZxug2uWVU35O8a9FQw",
+    authDomain: "lila-quotes.firebaseapp.com",
+    projectId: "lila-quotes",
+    storageBucket: "lila-quotes.firebasestorage.app",
+    messagingSenderId: "133968291740",
+    appId: "1:133968291740:web:1abb72d1c129ea655d8a59"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+
+  // ── State ──
+  let allQuotes = [];
+  let isFirstLoad = true;
+  let spFilter = 'all';
+  let statusFilter = 'all';
+  let allSpFilter = 'all';
+
+  // ── Tabs ──
+  window.switchTab = function(tab) {
+    document.querySelectorAll('.tab').forEach((t,i) => t.classList.toggle('active', ['pending','all'][i] === tab));
+    document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+    document.getElementById(`tab-${tab}`).classList.add('active');
+  };
+
+  window.setStatusFilter = function(status, el) {
+    statusFilter = status;
+    document.querySelectorAll('#statusFilterBar .filter-chip').forEach(c => c.classList.remove('active'));
+    el.classList.add('active');
+    renderAll();
+  };
+
+  window.setSpFilter = function(sp, el) {
+    spFilter = sp;
+    document.querySelectorAll('#spFilterBar .filter-chip').forEach(c => c.classList.remove('active'));
+    el.classList.add('active');
+    renderPending();
+  };
+
+  window.setAllSpFilter = function(sp, el) {
+    allSpFilter = sp;
+    document.querySelectorAll('#allSpFilterBar .filter-chip').forEach(c => c.classList.remove('active'));
+    el.classList.add('active');
+    renderAll();
+  };
+
+  // ── Live listener ──
+  const q = query(collection(db, 'quotes'), orderBy('submittedAt', 'desc'));
+
+  onSnapshot(q, (snapshot) => {
+    const newCount = snapshot.docs.filter(d => d.data().status === 'pending').length;
+
+    if (!isFirstLoad) {
+      const oldPending = allQuotes.filter(q => q.status === 'pending').length;
+      if (newCount > oldPending) {
+        showToast('New quote request received!', 'success');
+        triggerNotification();
+        document.getElementById('notifDot').style.display = 'block';
+      }
+    }
+
+    allQuotes = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+    isFirstLoad = false;
+
+    updateStats();
+    buildSpFilters();
+    buildAllSpFilters();
+    renderPending();
+    renderAll();
+  });
+
+  function updateStats() {
+    const pending = allQuotes.filter(q => q.status === 'pending' || q.status === 'counter_pending').length;
+    const quoted = allQuotes.filter(q => ['quoted','final','counter_pending','deal_concluded','deal_lost'].includes(q.status)).length;
+    const denied = allQuotes.filter(q => q.status === 'denied' || q.status === 'final_denied').length;
+    const concluded = allQuotes.filter(q => q.status === 'deal_concluded').length;
+    const lost = allQuotes.filter(q => q.status === 'deal_lost').length;
+    document.getElementById('statPending').textContent = pending;
+    document.getElementById('statQuoted').textContent = quoted;
+    document.getElementById('statDenied').textContent = denied;
+    document.getElementById('statTotal').textContent = allQuotes.length;
+    document.getElementById('statConcluded').textContent = concluded;
+    document.getElementById('statLost').textContent = lost;
+    document.getElementById('pendingBadge').textContent = pending;
+
+    // App icon badge
+    if ('setAppBadge' in navigator) {
+      if (pending > 0) {
+        navigator.setAppBadge(pending).catch(() => {});
+      } else {
+        navigator.clearAppBadge().catch(() => {});
+      }
+    }
+  }
+
+  function buildSpFilters() {
+    const spNames = [...new Set(allQuotes.filter(q => q.status === 'pending' || q.status === 'counter_pending').map(q => q.spName))];
+    const bar = document.getElementById('spFilterBar');
+    bar.innerHTML = `<div class="filter-chip ${spFilter==='all'?'active':''}" onclick="setSpFilter('all', this)">All SPs</div>`;
+    spNames.forEach(name => {
+      const chip = document.createElement('div');
+      chip.className = `filter-chip ${spFilter === name ? 'active' : ''}`;
+      chip.textContent = name.split(' ')[0]; // First name only
+      chip.onclick = function() { window.setSpFilter(name, this); };
+      bar.appendChild(chip);
+    });
+  }
+
+  function buildAllSpFilters() {
+    const spNames = [...new Set(allQuotes.map(q => q.spName))].sort();
+    const bar = document.getElementById('allSpFilterBar');
+    bar.innerHTML = `<div class="filter-chip ${allSpFilter==='all'?'active':''}" onclick="setAllSpFilter('all', this)">All SPs</div>`;
+    spNames.forEach(name => {
+      const chip = document.createElement('div');
+      chip.className = `filter-chip ${allSpFilter === name ? 'active' : ''}`;
+      chip.textContent = name.split(' ')[0];
+      chip.onclick = function() { window.setAllSpFilter(name, this); };
+      bar.appendChild(chip);
+    });
+  }
+
+  function renderPending() {
+    const container = document.getElementById('pendingContainer');
+    let quotes = allQuotes.filter(q => q.status === 'pending' || q.status === 'counter_pending');
+    if (spFilter !== 'all') quotes = quotes.filter(q => q.spName === spFilter);
+
+    if (quotes.length === 0) {
+      container.innerHTML = `<div class="empty-state"><div class="empty-icon">✅</div>No pending requests. All caught up!</div>`;
+      return;
+    }
+    container.innerHTML = '';
+    quotes.forEach(q => container.appendChild(buildCard(q, true)));
+  }
+
+  function renderAll() {
+    const container = document.getElementById('allContainer');
+    let quotes = [...allQuotes];
+    if (statusFilter !== 'all') quotes = quotes.filter(q => q.status === statusFilter);
+    if (allSpFilter !== 'all') quotes = quotes.filter(q => q.spName === allSpFilter);
+
+    if (quotes.length === 0) {
+      container.innerHTML = `<div class="empty-state"><div class="empty-icon">📋</div>No requests found.</div>`;
+      return;
+    }
+
+    container.innerHTML = '';
+    let lastDateLabel = null;
+
+    quotes.forEach(q => {
+      const dateLabel = q.submittedAt?.toDate
+        ? q.submittedAt.toDate().toLocaleDateString('en-IN', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' })
+        : 'Recent';
+
+      if (dateLabel !== lastDateLabel) {
+        const sep = document.createElement('div');
+        sep.className = 'date-separator';
+        sep.innerHTML = `<div class="date-separator-label">${dateLabel}</div><div class="date-separator-line"></div>`;
+        container.appendChild(sep);
+        lastDateLabel = dateLabel;
+      }
+
+      container.appendChild(buildCard(q, false));
+    });
+  }
+
+  function buildCard(d, isNew) {
+    const card = document.createElement('div');
+    const isActionable = d.status === 'pending' || d.status === 'counter_pending';
+    card.className = `quote-card${isNew && isActionable ? ' new-card' : ''}`;
+    card.id = `card-${d.id}`;
+
+    const date = d.submittedAt?.toDate
+      ? d.submittedAt.toDate().toLocaleDateString('en-IN', { day:'numeric', month:'short', hour:'2-digit', minute:'2-digit' })
+      : 'Just now';
+
+    const statusMap = {
+      'pending': ['status-pending', '⏳ Pending'],
+      'quoted': ['status-quoted', '✓ Quoted'],
+      'denied': ['status-denied', '✕ Denied'],
+      'counter_pending': ['status-counter_pending', '↩ Counter Bid'],
+      'final': ['status-final', '✓ Final'],
+      'final_denied': ['status-final_denied', '✕ Final Denied'],
+      'deal_concluded': ['status-quoted', '🤝 Deal Concluded'],
+      'deal_lost': ['status-denied', '❌ Deal Lost'],
+    };
+    const [statusClass, statusLabel] = statusMap[d.status] || ['status-pending', '⏳ Pending'];
+
+    let bodyHtml = '';
+
+    if (d.remarks) {
+      bodyHtml += `<div class="sp-remarks">💬 "${d.remarks}"</div>`;
+    }
+
+    // Grade rows
+    d.grades.forEach((g, idx) => {
+      const showPriceInput = d.status === 'pending';
+      const showFinalPriceInput = d.status === 'counter_pending';
+      const priceDisplay = g.price ? `<div style="color:var(--success);font-weight:600;font-size:15px;margin-top:4px">Round 1: ₹${Number(g.price).toLocaleString('en-IN')} / KG</div>${d.counter?.price ? `<div style="color:var(--orange);font-weight:600;font-size:14px;margin-top:4px">SP Counter: ₹${Number(d.counter.price).toLocaleString('en-IN')} / KG${d.counter.reason ? ` — ${d.counter.reason}` : ''}</div>` : ''}` : '';
+      const finalPriceDisplay = g.finalPrice ? `<div style="color:var(--success);font-weight:700;font-size:16px;margin-top:4px">Final: ₹${Number(g.finalPrice).toLocaleString('en-IN')} / KG</div>` : '';
+
+      bodyHtml += `
+        <div class="grade-response-row">
+          <div class="grade-name">${g.grade}</div>
+          <div class="grade-details-row">
+            <div class="detail-chip"><span>Qty</span>${g.qty} MT</div>
+            <div class="detail-chip"><span>Payment</span>${g.payment}</div>
+            <div class="detail-chip"><span>Delivery</span>${g.delivery}</div>
+          </div>
+          ${showPriceInput ? `
+            <div class="price-field">
+              <label>₹ / KG</label>
+              <input type="number" id="price-${d.id}-${idx}" placeholder="Enter price" min="0">
+            </div>
+          ` : priceDisplay}
+          ${showFinalPriceInput ? `
+            <div class="price-field" style="margin-top:8px">
+              <label>Final ₹ / KG</label>
+              <input type="number" id="final-price-${d.id}-${idx}" placeholder="Enter final price" min="0">
+            </div>
+          ` : finalPriceDisplay}
+        </div>
+      `;
+    });
+
+    // Counter bid banner
+    if (d.status === 'counter_pending' && d.counter) {
+      bodyHtml += `
+        <div class="counter-banner">
+          <div class="counter-banner-label">↩ SP Counter Bid</div>
+          <div class="counter-price-display">₹${Number(d.counter.price).toLocaleString('en-IN')} / KG</div>
+          ${d.counter.reason ? `<div class="counter-reason">"${d.counter.reason}"</div>` : ''}
+        </div>
+      `;
+    }
+
+    // Action panel
+    if (d.status === 'pending') {
+      bodyHtml += `
+        <div class="action-panel">
+          <div class="remarks-field">
+            <label>Remarks — visible to SP on quote or denial (optional)</label>
+            <textarea id="mgmt-remarks-${d.id}" rows="2" placeholder="e.g. Price valid for 3 days / Denial reason..."></textarea>
+          </div>
+          <div class="action-buttons">
+            <button class="btn-quote" onclick="submitQuote('${d.id}', ${d.grades.length})">✓ Send Quote</button>
+            <button class="btn-deny" onclick="denyQuote('${d.id}')">✕ Deny</button>
+          </div>
+        </div>
+      `;
+    } else if (d.status === 'counter_pending') {
+      bodyHtml += `
+        <div class="action-panel">
+          <div class="remarks-field">
+            <label>Remarks — visible to SP (optional)</label>
+            <textarea id="final-remarks-${d.id}" rows="2" placeholder="e.g. Best price, cannot go lower / Counter accepted..."></textarea>
+          </div>
+          <div class="action-buttons">
+            <button class="btn-quote" onclick="submitFinal('${d.id}', ${d.grades.length})">✓ Send Final Price</button>
+            <button class="btn-deny" onclick="denyFinal('${d.id}')">✕ Deny Final</button>
+          </div>
+        </div>
+      `;
+    } else if (d.status === 'quoted') {
+      bodyHtml += `<div class="response-summary quoted"><strong>✓ Quote Sent</strong>${d.response?.remarks ? '<br>' + d.response.remarks : ''}</div>`;
+    } else if (d.status === 'denied') {
+      bodyHtml += `<div class="response-summary denied"><strong>✕ Denied</strong><br>${d.response?.remarks || 'No reason provided'}</div>`;
+    } else if (d.status === 'final') {
+      bodyHtml += `<div class="response-summary quoted"><strong>✓ Final Price Sent</strong>${d.finalResponse?.remarks ? '<br>' + d.finalResponse.remarks : ''}</div>`;
+    } else if (d.status === 'final_denied') {
+      bodyHtml += `<div class="response-summary denied"><strong>✕ Final Denied</strong><br>${d.finalResponse?.remarks || 'No reason provided'}</div>`;
+    } else if (d.status === 'deal_concluded' || d.status === 'deal_lost') {
+      const isDone = d.status === 'deal_concluded';
+      bodyHtml += `
+        <div class="response-summary ${isDone ? 'quoted' : 'denied'}">
+          <strong>${isDone ? '🤝 Deal Concluded' : '❌ Deal Lost'}</strong>
+          ${d.dealOutcome ? `
+            <div style="margin-top:8px;font-size:13px;color:var(--charcoal-light)">
+              ${d.dealOutcome.grades ? d.dealOutcome.grades.map(g => `
+                <div style="margin-bottom:6px;padding:8px;background:var(--bg);border-radius:8px">
+                  <div style="font-weight:600">${g.grade}</div>
+                  <div>${isDone ? `Qty Sold: ${g.qtySold} MT · ₹${Number(g.price).toLocaleString('en-IN')} / KG` : `Lost: ${g.lostReason || 'No reason given'}`}</div>
+                </div>
+              `).join('') : ''}
+            </div>
+          ` : ''}
+        </div>
+      `;
+    }
+
+    card.innerHTML = `
+      <div class="quote-card-header" onclick="toggleCard('${d.id}')">
+        <div>
+          <div class="quote-customer">${d.customerName}</div>
+          <div class="quote-sp">${d.spName}</div>
+          <div class="quote-meta">${d.grades.length} grade${d.grades.length > 1 ? 's' : ''} · ${date}</div>
+        </div>
+        <div style="display:flex;align-items:center">
+          <span class="status-pill ${statusClass}">${statusLabel}</span>
+          <span class="chevron" id="chev-mgmt-${d.id}">▼</span>
+        </div>
+      </div>
+      <div class="quote-body" id="body-mgmt-${d.id}">${bodyHtml}</div>
+    `;
+
+    if (isActionable) {
+      setTimeout(() => {
+        document.getElementById(`body-mgmt-${d.id}`)?.classList.add('open');
+        document.getElementById(`chev-mgmt-${d.id}`)?.classList.add('open');
+      }, 50);
+    }
+
+    return card;
+  }
+
+  window.toggleCard = function(id) {
+    document.getElementById(`body-mgmt-${id}`)?.classList.toggle('open');
+    document.getElementById(`chev-mgmt-${id}`)?.classList.toggle('open');
+  };
+
+  // ── Submit Quote ──
+  window.submitQuote = async function(docId, gradeCount) {
+    const gradesWithPrices = [];
+    let valid = true;
+
+    // Find the quote data
+    const quote = allQuotes.find(q => q.id === docId);
+    if (!quote) return;
+
+    for (let i = 0; i < gradeCount; i++) {
+      const priceInput = document.getElementById(`price-${docId}-${i}`);
+      const price = priceInput?.value.trim();
+      if (!price || isNaN(price) || Number(price) <= 0) {
+        valid = false; break;
+      }
+      gradesWithPrices.push({ ...quote.grades[i], price });
+    }
+
+    if (!valid) { showToast('Enter price for all grades', 'error'); return; }
+
+    const remarks = document.getElementById(`mgmt-remarks-${docId}`)?.value.trim() || '';
+
+    try {
+      await updateDoc(doc(db, 'quotes', docId), {
+        status: 'quoted',
+        grades: gradesWithPrices,
+        response: { remarks, respondedAt: serverTimestamp() }
+      });
+      showToast('Quote sent to SP ✓', 'success');
+    } catch (e) {
+      showToast('Error. Try again.', 'error');
+      console.error(e);
+    }
+  };
+
+  // ── Deny ──
+  window.denyQuote = async function(docId) {
+    const remarks = document.getElementById(`mgmt-remarks-${docId}`)?.value.trim() || '';
+    if (!confirm('Deny this quotation request?')) return;
+
+    try {
+      await updateDoc(doc(db, 'quotes', docId), {
+        status: 'denied',
+        response: { remarks, respondedAt: serverTimestamp() }
+      });
+      showToast('Request denied', '');
+    } catch (e) {
+      showToast('Error. Try again.', 'error');
+      console.error(e);
+    }
+  };
+
+  // ── Submit Final Price ──
+  window.submitFinal = async function(docId, gradeCount) {
+    const quote = allQuotes.find(q => q.id === docId);
+    if (!quote) return;
+
+    const gradesWithFinalPrices = [];
+    let valid = true;
+
+    for (let i = 0; i < gradeCount; i++) {
+      const priceInput = document.getElementById(`final-price-${docId}-${i}`);
+      const price = priceInput?.value.trim();
+      if (!price || isNaN(price) || Number(price) <= 0) { valid = false; break; }
+      gradesWithFinalPrices.push({ ...quote.grades[i], finalPrice: price });
+    }
+
+    if (!valid) { showToast('Enter final price for all grades', 'error'); return; }
+
+    const remarks = document.getElementById(`final-remarks-${docId}`)?.value.trim() || '';
+
+    try {
+      await updateDoc(doc(db, 'quotes', docId), {
+        status: 'final',
+        grades: gradesWithFinalPrices,
+        finalResponse: { remarks, respondedAt: serverTimestamp() }
+      });
+      showToast('Final price sent ✓', 'success');
+    } catch (e) {
+      showToast('Error. Try again.', 'error');
+    }
+  };
+
+  // ── Deny Final ──
+  window.denyFinal = async function(docId) {
+    const remarks = document.getElementById(`final-remarks-${docId}`)?.value.trim() || '';
+    if (!confirm('Deny this counter bid? This is final.')) return;
+
+    try {
+      await updateDoc(doc(db, 'quotes', docId), {
+        status: 'final_denied',
+        finalResponse: { remarks, respondedAt: serverTimestamp() }
+      });
+      showToast('Counter denied', '');
+    } catch (e) {
+      showToast('Error. Try again.', 'error');
+    }
+  };
+
+  // ── Notifications ──
+  window.requestNotifPermission = async function() {
+    if (!('Notification' in window)) {
+      showToast('Notifications not supported on this browser', 'error'); return;
+    }
+    const permission = await Notification.requestPermission();
+    if (permission === 'granted') {
+      showToast('Notifications enabled ✓', 'success');
+      document.getElementById('notifBtn').textContent = '🔔';
+    } else {
+      showToast('Notifications blocked', 'error');
+    }
+  };
+
+  function triggerNotification() {
+    if (Notification.permission === 'granted') {
+      new Notification('Lila Quotes', {
+        body: 'New quotation request received',
+        icon: 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js' // placeholder
+      });
+    }
+  }
+
+  // ── Toast ──
+  
+  // ── PWA Install prompt ──
+  let deferredPrompt;
+  window.addEventListener('beforeinstallprompt', (e) => {
+    e.preventDefault();
+    deferredPrompt = e;
+    document.getElementById('installBanner').classList.add('show');
+  });
+
+  document.getElementById('installBtn')?.addEventListener('click', async () => {
+    if (deferredPrompt) {
+      deferredPrompt.prompt();
+      const { outcome } = await deferredPrompt.userChoice;
+      deferredPrompt = null;
+      document.getElementById('installBanner').classList.remove('show');
+    }
+  });
+
+  window.addEventListener('appinstalled', () => {
+    document.getElementById('installBanner').classList.remove('show');
+  });
+
+  window.showToast = function(msg, type = '') {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.className = `toast ${type} show`;
+    setTimeout(() => t.className = 'toast', 2800);
+  };
+</script>
+<!-- Install Banner -->
+<div class="install-banner" id="installBanner">
+  <div class="install-banner-text">
+    <strong>Add to Home Screen</strong>
+    Use this as an app on your phone
+  </div>
+  <button class="btn-install" id="installBtn">Install</button>
+  <button class="btn-install-dismiss" onclick="document.getElementById('installBanner').classList.remove('show')">✕</button>
+</div>
+<script>
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('/sw.js').then(reg => {
+        console.log('SW registered');
+      }).catch(err => console.log('SW failed:', err));
+    });
+  }
+</script>
+</body>
+</html>
