@@ -695,6 +695,110 @@
     color: var(--danger);
   }
 
+
+  /* ── Edit request ── */
+  .btn-edit-request {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    background: none;
+    border: 1.5px solid var(--border);
+    border-radius: 8px;
+    padding: 6px 12px;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--charcoal-light);
+    cursor: pointer;
+    margin-top: 12px;
+    font-family: 'DM Sans', sans-serif;
+    transition: all 0.2s;
+  }
+
+  .btn-edit-request:hover {
+    border-color: var(--orange);
+    color: var(--orange);
+  }
+
+  .edit-form {
+    display: none;
+    margin-top: 12px;
+    background: var(--bg);
+    border: 1.5px solid var(--orange);
+    border-radius: 10px;
+    padding: 14px;
+  }
+
+  .edit-form.show { display: block; }
+
+  .edit-form-label {
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--orange);
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+    margin-bottom: 10px;
+  }
+
+  .edit-grade-row {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 12px;
+    margin-bottom: 8px;
+  }
+
+  .edit-grade-title {
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--orange);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 8px;
+  }
+
+  .edit-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+
+  .edit-grid .field { margin-bottom: 0; }
+  .edit-grid .field.full { grid-column: 1 / -1; }
+
+  .edit-actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    margin-top: 10px;
+  }
+
+  .btn-save-edit {
+    padding: 10px;
+    background: var(--orange);
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    font-family: 'Syne', sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+
+  .btn-save-edit:hover { background: #c96a22; }
+
+  .btn-cancel-edit {
+    padding: 10px;
+    background: transparent;
+    color: var(--muted);
+    border: 1.5px solid var(--border);
+    border-radius: 8px;
+    font-family: 'Syne', sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+  }
+
 </style>
 </head>
 <body>
@@ -1053,6 +1157,49 @@
         ${responseHtml}
         ${counterFormHtml}
         ${dealSectionHtml}
+        ${d.status === 'pending' ? `
+          <button class="btn-edit-request" onclick="toggleEditForm('${id}')">✏️ Edit Request</button>
+          <div class="edit-form" id="edit-form-${id}">
+            <div class="edit-form-label">✏️ Edit Request</div>
+            <div class="field">
+              <label>Customer Name</label>
+              <input type="text" id="edit-customer-${id}" value="${d.customerName}">
+            </div>
+            <div class="field">
+              <label>Remarks</label>
+              <textarea id="edit-remarks-${id}" rows="2">${d.remarks || ''}</textarea>
+            </div>
+            <div id="edit-grades-${id}">
+              ${d.grades.map((g, idx) => `
+                <div class="edit-grade-row">
+                  <div class="edit-grade-title">Grade ${idx + 1}</div>
+                  <div class="edit-grid">
+                    <div class="field full">
+                      <label>Grade / Product</label>
+                      <input type="text" id="edit-grade-${id}-${idx}" value="${g.grade}">
+                    </div>
+                    <div class="field">
+                      <label>Quantity (MT)</label>
+                      <input type="number" id="edit-qty-${id}-${idx}" value="${g.qty}">
+                    </div>
+                    <div class="field">
+                      <label>Payment Terms</label>
+                      <input type="text" id="edit-payment-${id}-${idx}" value="${g.payment}">
+                    </div>
+                    <div class="field full">
+                      <label>Delivery Terms</label>
+                      <input type="text" id="edit-delivery-${id}-${idx}" value="${g.delivery}">
+                    </div>
+                  </div>
+                </div>
+              `).join('')}
+            </div>
+            <div class="edit-actions">
+              <button class="btn-save-edit" onclick="saveEdit('${id}', ${d.grades.length})">Save Changes</button>
+              <button class="btn-cancel-edit" onclick="toggleEditForm('${id}')">Cancel</button>
+            </div>
+          </div>
+        ` : ''}
       </div>
     `;
 
@@ -1082,6 +1229,46 @@
         counter: { price, reason, submittedAt: serverTimestamp() }
       });
       showToast('Counter bid submitted ✓', 'success');
+    } catch (e) {
+      showToast('Error. Try again.', 'error');
+      console.error(e);
+    }
+  };
+
+  window.toggleEditForm = function(id) {
+    const form = document.getElementById(`edit-form-${id}`);
+    form?.classList.toggle('show');
+  };
+
+  window.saveEdit = async function(docId, gradeCount) {
+    const customerName = document.getElementById(`edit-customer-${docId}`)?.value.trim();
+    const remarks = document.getElementById(`edit-remarks-${docId}`)?.value.trim() || '';
+
+    if (!customerName) { showToast('Customer name cannot be empty', 'error'); return; }
+
+    const grades = [];
+    let valid = true;
+
+    for (let i = 0; i < gradeCount; i++) {
+      const grade = document.getElementById(`edit-grade-${docId}-${i}`)?.value.trim();
+      const qty = document.getElementById(`edit-qty-${docId}-${i}`)?.value.trim();
+      const payment = document.getElementById(`edit-payment-${docId}-${i}`)?.value.trim();
+      const delivery = document.getElementById(`edit-delivery-${docId}-${i}`)?.value.trim();
+
+      if (!grade || !qty || !payment || !delivery) { valid = false; break; }
+      grades.push({ grade, qty, payment, delivery });
+    }
+
+    if (!valid) { showToast('Fill all grade fields', 'error'); return; }
+
+    try {
+      await updateDoc(doc(db, 'quotes', docId), {
+        customerName,
+        remarks,
+        grades
+      });
+      showToast('Request updated ✓', 'success');
+      document.getElementById(`edit-form-${docId}`)?.classList.remove('show');
     } catch (e) {
       showToast('Error. Try again.', 'error');
       console.error(e);
