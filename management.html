@@ -5,11 +5,11 @@
 <link rel="manifest" href="/manifest-mgmt.json">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="Lila Quotes">
+<meta name="apple-mobile-web-app-title" content="Lila Mgmt">
 <link rel="apple-touch-icon" href="/icon-192.png">
 <meta name="theme-color" content="#3D3D3D">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Lila Quotes — Management</title>
+<title>Lila Management Portal</title>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=Syne:wght@600;700;800&display=swap" rel="stylesheet">
 <style>
   :root {
@@ -1834,6 +1834,8 @@
       showToast('Error saving. Try again.', '');
     }
   };
+
+  window.showToast = function(msg, type = '') {
     const t = document.getElementById('toast');
     t.textContent = msg;
     t.className = `toast ${type} show`;
