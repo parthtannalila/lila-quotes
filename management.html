@@ -2010,11 +2010,12 @@
       const status = q.status === 'counter_pending' ? '(Counter Bid)' : '';
       msg += `*${i + 1}. ${q.customerName}* ${status}\n`;
       msg += `SP: ${q.spName}\n`;
+      if (q.remarks) msg += `Note: ${q.remarks}\n`;
       if (q.grades && q.grades.length > 0) {
         q.grades.forEach(g => {
           msg += `  • ${g.grade} — ${g.qty} MT`;
-          if (g.paymentTerms) msg += ` | ${g.paymentTerms}`;
-          if (g.deliveryTerms) msg += ` | ${g.deliveryTerms}`;
+          if (g.payment) msg += ` | ${g.payment}`;
+          if (g.delivery) msg += ` | ${g.delivery}`;
           msg += '\n';
         });
       }
