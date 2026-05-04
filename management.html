@@ -1129,6 +1129,18 @@
 
   // ── Tabs ──
   window.switchTab = function(tab) {
+    if (Object.keys(rbPendingChanges).length > 0) {
+      const confirmed = confirm('You have unsaved rate changes. Save before leaving?');
+      if (confirmed) {
+        const isOnActive = document.getElementById('rbnav-active').classList.contains('active');
+        if (isOnActive) rbSaveActiveRates();
+        else rbSaveRates();
+        return;
+      }
+      rbPendingChanges = {};
+      document.getElementById('rb-save-bar').style.display = 'none';
+      document.getElementById('rb-active-save-bar').style.display = 'none';
+    }
     document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
     const tabIndex = ['pending','all','ratebook'].indexOf(tab);
     if (tabIndex >= 0) document.querySelectorAll('.tab')[tabIndex].classList.add('active');
@@ -1723,7 +1735,12 @@
   window.rbSubTab = function(tab, force) {
     if (!force && Object.keys(rbPendingChanges).length > 0) {
       const confirmed = confirm('You have unsaved rate changes. Save before leaving?');
-      if (confirmed) { rbSaveRates(); return; }
+      if (confirmed) {
+        const isOnActive = document.getElementById('rbnav-active').classList.contains('active');
+        if (isOnActive) rbSaveActiveRates();
+        else rbSaveRates();
+        return;
+      }
       rbPendingChanges = {};
       document.getElementById('rb-save-bar').style.display = 'none';
       document.getElementById('rb-active-save-bar').style.display = 'none';
