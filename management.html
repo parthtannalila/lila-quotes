@@ -2031,6 +2031,8 @@
       prompt('Copy this summary:', msg);
     });
   };
+
+  window.showToast = function(msg, type = '') {
     const t = document.getElementById('toast');
     t.textContent = msg;
     t.className = `toast ${type} show`;
