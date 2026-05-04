@@ -632,9 +632,10 @@ function renderRatebook() {
       html += `
         <div class="rate-card" onclick="toggleRateCard('${g.id}')">
           <div class="rate-card-left">
-            <div style="display:flex;align-items:baseline;gap:8px;flex-wrap:wrap;">
-              <div class="rate-card-name">${g.name}</div>
-              <div class="rate-big">${rate}<span class="rate-big-unit"> /kg</span></div>
+            <div style="display:flex;align-items:baseline;gap:6px;flex-wrap:wrap;">
+              <span class="rate-card-name">${g.name}</span>
+              <span style="color:var(--muted);font-size:13px">·</span>
+              <span class="rate-big">${rate}<span class="rate-big-unit"> /kg</span></span>
             </div>
             <div class="rate-card-sub">${g.supplier ? g.supplier + ' · ' : ''}${g.sub}${dateStr ? ` · ${dateStr}` : ''}</div>
           </div>
