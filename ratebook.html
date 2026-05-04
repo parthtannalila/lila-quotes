@@ -414,7 +414,7 @@ main {
 
 .rate-card:active { background: #fafaf8; }
 
-.rate-card-left { min-width: 0; }
+.rate-card-left { min-width: 0; flex: 1; }
 
 .rate-card-name {
   font-family: 'Syne', sans-serif;
@@ -632,12 +632,11 @@ function renderRatebook() {
       html += `
         <div class="rate-card" onclick="toggleRateCard('${g.id}')">
           <div class="rate-card-left">
-            <div class="rate-card-name">${g.name}</div>
-            <div class="rate-card-sub">${g.supplier ? g.supplier + ' · ' : ''}${g.sub}</div>
-          </div>
-          <div class="rate-card-right">
-            <div class="rate-big">${rate}</div>
-            <div class="rate-big-unit">/kg${dateStr ? ` · ${dateStr}` : ''}</div>
+            <div style="display:flex;align-items:baseline;gap:8px;flex-wrap:wrap;">
+              <div class="rate-card-name">${g.name}</div>
+              <div class="rate-big">${rate}<span class="rate-big-unit"> /kg</span></div>
+            </div>
+            <div class="rate-card-sub">${g.supplier ? g.supplier + ' · ' : ''}${g.sub}${dateStr ? ` · ${dateStr}` : ''}</div>
           </div>
         </div>
         <div class="grade-body" id="rbody-${g.id}">
