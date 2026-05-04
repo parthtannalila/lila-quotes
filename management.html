@@ -1038,14 +1038,27 @@
 
     <!-- Sub-nav -->
     <div class="rb-subnav">
-      <button class="rb-subnav-btn active" id="rbnav-rates" onclick="rbSubTab('rates')">Update Rates</button>
+      <button class="rb-subnav-btn active" id="rbnav-active" onclick="rbSubTab('active')">Active Grades</button>
+      <button class="rb-subnav-btn" id="rbnav-rates" onclick="rbSubTab('rates')">All Grades</button>
       <button class="rb-subnav-btn" id="rbnav-grades" onclick="rbSubTab('grades')">Manage Grades</button>
     </div>
 
-    <!-- Update Rates panel -->
-    <div id="rb-rates-panel">
+    <!-- Active Grades panel -->
+    <div id="rb-active-panel">
       <div class="rb-info-bar">
-        <span id="rb-active-count">—</span> active grades · <span id="rb-total-count">—</span> total in catalogue
+        <span id="rb-active-count">—</span> active grades
+      </div>
+      <div id="rb-active-list"><div class="loading-bar"></div></div>
+      <div class="rb-save-bar" id="rb-active-save-bar" style="display:none">
+        <button class="rb-save-btn" onclick="rbSaveActiveRates()">Save Rate Changes</button>
+        <span id="rb-active-pending-changes">0 unsaved changes</span>
+      </div>
+    </div>
+
+    <!-- Update Rates panel -->
+    <div id="rb-rates-panel" style="display:none">
+      <div class="rb-info-bar">
+        <span id="rb-all-active-count">—</span> active grades · <span id="rb-total-count">—</span> total in catalogue
       </div>
 
       <!-- Search -->
@@ -1121,7 +1134,7 @@
     if (tabIndex >= 0) document.querySelectorAll('.tab')[tabIndex].classList.add('active');
     document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
     document.getElementById(`tab-${tab}`).classList.add('active');
-    if (tab === 'ratebook') rbRenderRates();
+    if (tab === 'ratebook') rbRenderActiveGrades();
   };
 
   window.setStatusFilter = function(status, el) {
@@ -1581,23 +1594,148 @@
     snap.forEach(d => { rbRatesMap[d.id] = d.data(); });
     rbUpdateInfoBar();
     if (document.getElementById('tab-ratebook').classList.contains('active')) {
-      rbRenderRates();
+      const activeSubTab = document.getElementById('rbnav-active').classList.contains('active') ? 'active' :
+                           document.getElementById('rbnav-rates').classList.contains('active') ? 'rates' : 'grades';
+      if (activeSubTab === 'active') rbRenderActiveGrades();
+      else if (activeSubTab === 'rates') rbRenderRates();
     }
   });
 
   function rbUpdateInfoBar() {
     const active = Object.values(rbRatesMap).filter(r => r.is_active).length;
     document.getElementById('rb-active-count').textContent = active;
+    document.getElementById('rb-all-active-count').textContent = active;
     document.getElementById('rb-total-count').textContent = RB_CATALOGUE.length;
   }
 
+  // ── Render Active Grades ──
+  window.rbRenderActiveGrades = function() {
+    const activeGrades = RB_CATALOGUE.filter(g => rbRatesMap[g.id]?.is_active);
+
+    const list = document.getElementById('rb-active-list');
+    if (activeGrades.length === 0) {
+      list.innerHTML = '<div style="padding:24px 0;color:var(--muted);font-size:13px">No active grades yet. Go to All Grades to activate grades.</div>';
+      return;
+    }
+
+    const byGroup = {};
+    activeGrades.forEach(g => {
+      if (!byGroup[g.group]) byGroup[g.group] = [];
+      byGroup[g.group].push(g);
+    });
+
+    let html = '';
+    Object.keys(byGroup).sort().forEach(group => {
+      html += `<div class="rb-group-header">${group}</div>`;
+      byGroup[group].forEach(g => {
+        const r = rbRatesMap[g.id] || {};
+        const rateType = r.rate_type || 'range';
+        const rateMin = r.rate_min ?? '';
+        const rateMax = r.rate_max ?? '';
+        const rateSingle = r.rate_single ?? '';
+        const isModified = !!rbPendingChanges[g.id];
+
+        html += `
+          <div class="rb-rate-row${isModified ? ' modified' : ''}" id="rbactrow-${g.id}">
+            <div class="rb-rate-left">
+              <div class="rb-rate-name" title="${g.name}">${g.name}</div>
+              <div class="rb-rate-sub">${g.supplier ? g.supplier + ' · ' : ''}${g.group}</div>
+            </div>
+            <div class="rb-rate-controls">
+              <div class="rb-rate-inputs">
+                <select class="rb-rate-type-select" id="rbacttype-${g.id}" onchange="rbActTypeChange('${g.id}')">
+                  <option value="range"${rateType==='range'?' selected':''}>Range</option>
+                  <option value="single"${rateType==='single'?' selected':''}>Single</option>
+                </select>
+                <div id="rbactrange-${g.id}" style="${rateType==='single'?'display:none':''}">
+                  <input class="rb-rate-input" type="number" id="rbactmin-${g.id}" value="${rateMin}" placeholder="Min" oninput="rbActMarkChanged('${g.id}')">
+                  <span class="rb-rate-sep">–</span>
+                  <input class="rb-rate-input" type="number" id="rbactmax-${g.id}" value="${rateMax}" placeholder="Max" oninput="rbActMarkChanged('${g.id}')">
+                </div>
+                <div id="rbactsingle-${g.id}" style="${rateType!=='single'?'display:none':''}">
+                  <input class="rb-rate-input" type="number" id="rbactsingleval-${g.id}" value="${rateSingle}" placeholder="₹/KG" oninput="rbActMarkChanged('${g.id}')">
+                </div>
+              </div>
+            </div>
+          </div>
+        `;
+      });
+    });
+
+    list.innerHTML = html;
+  };
+
+  window.rbActTypeChange = function(id) {
+    const type = document.getElementById(`rbacttype-${id}`).value;
+    document.getElementById(`rbactrange-${id}`).style.display = type === 'single' ? 'none' : '';
+    document.getElementById(`rbactsingle-${id}`).style.display = type === 'single' ? '' : 'none';
+    rbActMarkChanged(id);
+  };
+
+  window.rbActMarkChanged = function(id) {
+    rbPendingChanges[id] = true;
+    document.getElementById(`rbactrow-${id}`)?.classList.add('modified');
+    const count = Object.keys(rbPendingChanges).length;
+    document.getElementById('rb-active-save-bar').style.display = count > 0 ? 'flex' : 'none';
+    document.getElementById('rb-active-pending-changes').textContent = `${count} unsaved change${count !== 1 ? 's' : ''}`;
+  };
+
+  window.rbSaveActiveRates = async function() {
+    const btn = document.querySelector('#rb-active-save-bar .rb-save-btn');
+    btn.disabled = true;
+    btn.textContent = 'Saving...';
+
+    const ids = Object.keys(rbPendingChanges);
+    const promises = ids.map(async (id) => {
+      const rateType = document.getElementById(`rbacttype-${id}`)?.value || 'range';
+      const rateMin = parseFloat(document.getElementById(`rbactmin-${id}`)?.value) || null;
+      const rateMax = parseFloat(document.getElementById(`rbactmax-${id}`)?.value) || null;
+      const rateSingle = parseFloat(document.getElementById(`rbactsingleval-${id}`)?.value) || null;
+      const existing = rbRatesMap[id] || {};
+      await setDoc(doc(db, 'grades', id), {
+        ...existing,
+        is_active: true,
+        rate_type: rateType,
+        rate_min: rateType === 'range' ? rateMin : null,
+        rate_max: rateType === 'range' ? rateMax : null,
+        rate_single: rateType === 'single' ? rateSingle : null,
+        last_updated: serverTimestamp(),
+      });
+    });
+
+    try {
+      await Promise.all(promises);
+      rbPendingChanges = {};
+      btn.disabled = false;
+      btn.textContent = 'Save Rate Changes';
+      document.getElementById('rb-active-save-bar').style.display = 'none';
+      showToast(`${ids.length} rate${ids.length !== 1 ? 's' : ''} saved ✓`, 'success');
+      ids.forEach(id => document.getElementById(`rbactrow-${id}`)?.classList.remove('modified'));
+    } catch(e) {
+      console.error(e);
+      btn.disabled = false;
+      btn.textContent = 'Save Rate Changes';
+      showToast('Error saving. Try again.', '');
+    }
+  };
+
   // ── Sub tab switch ──
-  window.rbSubTab = function(tab) {
+  window.rbSubTab = function(tab, force) {
+    if (!force && Object.keys(rbPendingChanges).length > 0) {
+      const confirmed = confirm('You have unsaved rate changes. Save before leaving?');
+      if (confirmed) { rbSaveRates(); return; }
+      rbPendingChanges = {};
+      document.getElementById('rb-save-bar').style.display = 'none';
+      document.getElementById('rb-active-save-bar').style.display = 'none';
+    }
+    document.getElementById('rbnav-active').classList.toggle('active', tab === 'active');
     document.getElementById('rbnav-rates').classList.toggle('active', tab === 'rates');
     document.getElementById('rbnav-grades').classList.toggle('active', tab === 'grades');
+    document.getElementById('rb-active-panel').style.display = tab === 'active' ? 'block' : 'none';
     document.getElementById('rb-rates-panel').style.display = tab === 'rates' ? 'block' : 'none';
     document.getElementById('rb-grades-panel').style.display = tab === 'grades' ? 'block' : 'none';
     if (tab === 'grades') rbRenderGrades();
+    if (tab === 'active') rbRenderActiveGrades();
   };
 
   // ── Rate filter ──

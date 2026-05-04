@@ -404,7 +404,7 @@ main {
 .rate-card {
   background: var(--card);
   border-bottom: 1px solid var(--border-light);
-  padding: 14px 16px;
+  padding: 12px 16px;
   display: flex;
   align-items: center;
   gap: 12px;
@@ -430,12 +430,17 @@ main {
   margin-top: 2px;
 }
 
-.rate-card-right { flex-shrink: 0; text-align: right; }
+.rate-card-right {
+  flex-shrink: 0;
+  display: flex;
+  align-items: baseline;
+  gap: 5px;
+}
 
 .rate-big {
-  font-family: 'Syne', sans-serif;
-  font-size: 18px;
-  font-weight: 800;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 14px;
+  font-weight: 600;
   color: var(--success);
   white-space: nowrap;
 }
@@ -445,13 +450,11 @@ main {
   color: var(--muted);
   font-family: 'DM Sans', sans-serif;
   font-weight: 400;
-  margin-top: 2px;
 }
 
 .rate-date {
-  font-size: 10px;
+  font-size: 11px;
   color: var(--muted);
-  margin-top: 1px;
 }
 
 /* ── Sticky updated banner ── */
@@ -634,8 +637,7 @@ function renderRatebook() {
           </div>
           <div class="rate-card-right">
             <div class="rate-big">${rate}</div>
-            <div class="rate-big-unit">₹ / KG</div>
-            ${dateStr ? `<div class="rate-date">${dateStr}</div>` : ''}
+            <div class="rate-big-unit">/kg${dateStr ? ` · ${dateStr}` : ''}</div>
           </div>
         </div>
         <div class="grade-body" id="rbody-${g.id}">
