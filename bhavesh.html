@@ -1111,6 +1111,7 @@
           </div>
           <div class="deal-extra-field" id="deal-won-fields-${id}-${idx}">
             <input type="number" id="deal-qty-${id}-${idx}" placeholder="Actual qty sold (MT)" min="0">
+            <input type="number" id="deal-rate-${id}-${idx}" placeholder="Actual rate (₹/KG)" min="0" style="margin-top:6px">
           </div>
           <div class="deal-extra-field" id="deal-lost-fields-${id}-${idx}">
             <textarea id="deal-reason-${id}-${idx}" rows="2" placeholder="Reason for loss (e.g. price too high, competitor)"></textarea>
@@ -1133,7 +1134,7 @@
           ${d.dealOutcome?.grades ? d.dealOutcome.grades.map(g => `
             <div style="margin-top:6px;padding:6px 0;border-top:1px solid rgba(0,0,0,0.06)">
               <strong>${g.grade}</strong><br>
-              ${g.outcome === 'won' ? `Qty: ${g.qtySold} MT · ₹${Number(g.price).toLocaleString('en-IN')} / KG` : `Lost: ${g.lostReason || 'No reason given'}`}
+              ${g.outcome === 'won' ? `Qty: ${g.qtySold} MT · ₹${Number(g.actualRate || g.price).toLocaleString('en-IN')} / KG` : `Lost: ${g.lostReason || 'No reason given'}`}
             </div>
           `).join('') : ''}
         </div>
@@ -1339,8 +1340,10 @@
       if (isWon) {
         anyWon = true;
         const qtySold = document.getElementById(`deal-qty-${docId}-${i}`)?.value.trim();
+        const actualRate = document.getElementById(`deal-rate-${docId}-${i}`)?.value.trim();
         if (!qtySold) { showToast('Enter qty sold for concluded grades', 'error'); return; }
-        gradesOutcome.push({ grade, outcome: 'won', qtySold, price });
+        if (!actualRate) { showToast('Enter actual rate for concluded grades', 'error'); return; }
+        gradesOutcome.push({ grade, outcome: 'won', qtySold, actualRate, price });
       } else {
         const lostReason = document.getElementById(`deal-reason-${docId}-${i}`)?.value.trim() || '';
         gradesOutcome.push({ grade, outcome: 'lost', lostReason, price });

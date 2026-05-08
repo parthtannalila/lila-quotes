@@ -1413,7 +1413,7 @@
               ${d.dealOutcome.grades ? d.dealOutcome.grades.map(g => `
                 <div style="margin-bottom:6px;padding:8px;background:var(--bg);border-radius:8px">
                   <div style="font-weight:600">${g.grade}</div>
-                  <div>${isDone ? `Qty Sold: ${g.qtySold} MT · ₹${Number(g.price).toLocaleString('en-IN')} / KG` : `Lost: ${g.lostReason || 'No reason given'}`}</div>
+                  <div>${isDone ? `Qty Sold: ${g.qtySold} MT · ₹${Number(g.actualRate || g.price).toLocaleString('en-IN')} / KG${g.actualRate && g.actualRate !== g.price ? ` <span style="color:var(--muted);font-size:11px">(quoted ₹${Number(g.price).toLocaleString('en-IN')})</span>` : ''}` : `Lost: ${g.lostReason || 'No reason given'}`}</div>
                 </div>
               `).join('') : ''}
             </div>
