@@ -1105,7 +1105,7 @@
 
 <script type="module">
   import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
-  import { getFirestore, collection, doc, updateDoc, setDoc, getDoc, query, orderBy, onSnapshot, serverTimestamp }
+  import { getFirestore, collection, doc, updateDoc, setDoc, getDoc, getDocs, query, orderBy, onSnapshot, serverTimestamp }
     from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
   import { getStorage, ref, uploadBytesResumable, getDownloadURL }
     from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js';
@@ -1150,7 +1150,11 @@
     document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
     document.getElementById(`tab-${tab}`).classList.add('active');
     if (tab === 'ratebook') {
-      if (Object.keys(rbRatesMap).length > 0) rbRenderActiveGrades();
+      const activeSubTab = document.getElementById('rbnav-active').classList.contains('active') ? 'active' :
+                           document.getElementById('rbnav-rates').classList.contains('active') ? 'rates' : 'grades';
+      if (activeSubTab === 'active') rbRenderActiveGrades();
+      else if (activeSubTab === 'rates') rbRenderRates();
+      else rbRenderGrades();
     }
   };
 
@@ -1604,18 +1608,28 @@
   let rbOpenGradeId = null;
 
   // ── Load grades from Firestore ──
-  onSnapshot(collection(db, 'grades'), (snap) => {
-    rbRatesMap = {};
-    snap.forEach(d => { rbRatesMap[d.id] = d.data(); });
-    rbUpdateInfoBar();
-    if (document.getElementById('tab-ratebook').classList.contains('active')) {
-      const activeSubTab = document.getElementById('rbnav-active').classList.contains('active') ? 'active' :
-                           document.getElementById('rbnav-rates').classList.contains('active') ? 'rates' : 'grades';
-      if (activeSubTab === 'active') rbRenderActiveGrades();
-      else if (activeSubTab === 'rates') rbRenderRates();
-      else rbRenderGrades();
+  // ── Load grades once (not real-time) ──
+  async function loadGrades() {
+    try {
+      const snap = await getDocs(collection(db, 'grades'));
+      rbRatesMap = {};
+      snap.forEach(d => { rbRatesMap[d.id] = d.data(); });
+      rbUpdateInfoBar();
+      // If ratebook tab is active, render current sub-tab
+      const ratebookTab = document.getElementById('tab-ratebook');
+      if (ratebookTab && ratebookTab.classList.contains('active')) {
+        const activeSubTab = document.getElementById('rbnav-active').classList.contains('active') ? 'active' :
+                             document.getElementById('rbnav-rates').classList.contains('active') ? 'rates' : 'grades';
+        if (activeSubTab === 'active') rbRenderActiveGrades();
+        else if (activeSubTab === 'rates') rbRenderRates();
+        else rbRenderGrades();
+      }
+    } catch(e) {
+      console.error('Failed to load grades:', e);
     }
-  });
+  }
+
+  loadGrades();
 
   // ── Build RB_CATALOGUE from Firestore data ──
   function buildRbCatalogue() {
@@ -1743,6 +1757,7 @@
       document.getElementById('rb-active-save-bar').style.display = 'none';
       showToast(`${ids.length} rate${ids.length !== 1 ? 's' : ''} saved ✓`, 'success');
       ids.forEach(id => document.getElementById(`rbactrow-${id}`)?.classList.remove('modified'));
+      loadGrades();
     } catch(e) {
       console.error(e);
       btn.disabled = false;
@@ -1891,6 +1906,7 @@
       showToast(`${ids.length} rate${ids.length !== 1 ? 's' : ''} saved ✓`, 'success');
       // Remove modified styling
       ids.forEach(id => document.getElementById(`rbrow-${id}`)?.classList.remove('modified'));
+      loadGrades();
     } catch (e) {
       console.error(e);
       btn.disabled = false;
