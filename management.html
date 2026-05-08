@@ -1149,7 +1149,9 @@
     if (tabIndex >= 0) document.querySelectorAll('.tab')[tabIndex].classList.add('active');
     document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
     document.getElementById(`tab-${tab}`).classList.add('active');
-    if (tab === 'ratebook') rbRenderActiveGrades();
+    if (tab === 'ratebook') {
+      if (Object.keys(rbRatesMap).length > 0) rbRenderActiveGrades();
+    }
   };
 
   window.setStatusFilter = function(status, el) {
@@ -1611,6 +1613,7 @@
                            document.getElementById('rbnav-rates').classList.contains('active') ? 'rates' : 'grades';
       if (activeSubTab === 'active') rbRenderActiveGrades();
       else if (activeSubTab === 'rates') rbRenderRates();
+      else rbRenderGrades();
     }
   });
 
