@@ -1668,17 +1668,15 @@
 
         html += `
           <div class="rb-rate-row${isModified ? ' modified' : ''}" id="rbactrow-${g.id}">
-            <div class="rb-rate-left">
-              <div class="rb-rate-name" title="${g.name}">${g.name}</div>
+            <div class="rb-rate-left" style="flex:1;min-width:0">
+              <div class="rb-rate-name">${g.name}</div>
               <div class="rb-rate-sub">${g.supplier ? g.supplier + ' · ' : ''}${g.group}</div>
-            </div>
-            <div class="rb-rate-controls">
-              <div class="rb-rate-inputs">
+              <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-top:8px">
                 <select class="rb-rate-type-select" id="rbacttype-${g.id}" onchange="rbActTypeChange('${g.id}')">
                   <option value="range"${rateType==='range'?' selected':''}>Range</option>
                   <option value="single"${rateType==='single'?' selected':''}>Single</option>
                 </select>
-                <div id="rbactrange-${g.id}" style="${rateType==='single'?'display:none':''}">
+                <div id="rbactrange-${g.id}" style="${rateType==='single'?'display:none':'display:flex;align-items:center;gap:4px'}">
                   <input class="rb-rate-input" type="number" id="rbactmin-${g.id}" value="${rateMin}" placeholder="Min" oninput="rbActMarkChanged('${g.id}')">
                   <span class="rb-rate-sep">–</span>
                   <input class="rb-rate-input" type="number" id="rbactmax-${g.id}" value="${rateMax}" placeholder="Max" oninput="rbActMarkChanged('${g.id}')">
@@ -1800,18 +1798,15 @@
 
       html += `
         <div class="rb-rate-row${isModified ? ' modified' : ''}" id="rbrow-${g.id}">
-          <div class="rb-rate-left">
-            <div class="rb-rate-name" title="${g.name}">${g.name}</div>
+          <div class="rb-rate-left" style="flex:1;min-width:0">
+            <div class="rb-rate-name">${g.name}</div>
             <div class="rb-rate-sub">${g.supplier ? g.supplier + ' · ' : ''}${g.group}</div>
-          </div>
-          <div class="rb-rate-controls">
-            <button class="rb-toggle-switch${isActive ? ' on' : ''}" id="rbtog-${g.id}" onclick="rbToggleActive('${g.id}')" title="${isActive ? 'Active' : 'Inactive'}"></button>
-            <div class="rb-rate-inputs" id="rbinputs-${g.id}" style="${isActive ? '' : 'opacity:0.4;pointer-events:none'}">
+            <div class="rb-rate-inputs" id="rbinputs-${g.id}" style="${isActive ? '' : 'display:none'}; margin-top:8px; flex-wrap:wrap; gap:6px;">
               <select class="rb-rate-type-select" id="rbtype-${g.id}" onchange="rbTypeChange('${g.id}')">
                 <option value="range"${rateType==='range'?' selected':''}>Range</option>
                 <option value="single"${rateType==='single'?' selected':''}>Single</option>
               </select>
-              <div id="rbrange-${g.id}" style="${rateType==='single'?'display:none':''}">
+              <div id="rbrange-${g.id}" style="${rateType==='single'?'display:none':'display:flex;align-items:center;gap:4px'}">
                 <input class="rb-rate-input" type="number" id="rbmin-${g.id}" value="${rateMin}" placeholder="Min" oninput="rbMarkChanged('${g.id}')">
                 <span class="rb-rate-sep">–</span>
                 <input class="rb-rate-input" type="number" id="rbmax-${g.id}" value="${rateMax}" placeholder="Max" oninput="rbMarkChanged('${g.id}')">
@@ -1820,6 +1815,9 @@
                 <input class="rb-rate-input" type="number" id="rbsingleval-${g.id}" value="${rateSingle}" placeholder="₹/KG" oninput="rbMarkChanged('${g.id}')">
               </div>
             </div>
+          </div>
+          <div class="rb-rate-controls" style="flex-shrink:0;margin-left:12px">
+            <button class="rb-toggle-switch${isActive ? ' on' : ''}" id="rbtog-${g.id}" onclick="rbToggleActive('${g.id}')" title="${isActive ? 'Active' : 'Inactive'}"></button>
           </div>
         </div>
       `;
@@ -1833,8 +1831,9 @@
     const inputs = document.getElementById(`rbinputs-${id}`);
     const isNowActive = !btn.classList.contains('on');
     btn.classList.toggle('on', isNowActive);
-    inputs.style.opacity = isNowActive ? '1' : '0.4';
-    inputs.style.pointerEvents = isNowActive ? '' : 'none';
+    if (inputs) {
+      inputs.style.display = isNowActive ? 'flex' : 'none';
+    }
     rbMarkChanged(id);
   };
 
