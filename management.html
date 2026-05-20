@@ -1098,7 +1098,26 @@
               <label>Polymer Group *</label>
               <select id="ng-group">
                 <option value="">Select group</option>
-                ${['ABS','BIO POLYMERS','DOW SPECIALITY','EVA','EVOH','HDPE','LDPE','LLDPE','MASTER BATCH','MDPE','MLLDPE','NYLON','PC','PCR','PET','PP','PPCP','PVC','SAN','WIRE & CABLE'].map(g => `<option value="${g}">${g}</option>`).join('')}
+                <option value="ABS">ABS</option>
+                <option value="BIO POLYMERS">BIO POLYMERS</option>
+                <option value="DOW SPECIALITY">DOW SPECIALITY</option>
+                <option value="EVA">EVA</option>
+                <option value="EVOH">EVOH</option>
+                <option value="HDPE">HDPE</option>
+                <option value="LDPE">LDPE</option>
+                <option value="LLDPE">LLDPE</option>
+                <option value="MASTER BATCH">MASTER BATCH</option>
+                <option value="MDPE">MDPE</option>
+                <option value="MLLDPE">MLLDPE</option>
+                <option value="NYLON">NYLON</option>
+                <option value="PC">PC</option>
+                <option value="PCR">PCR</option>
+                <option value="PET">PET</option>
+                <option value="PP">PP</option>
+                <option value="PPCP">PPCP</option>
+                <option value="PVC">PVC</option>
+                <option value="SAN">SAN</option>
+                <option value="WIRE &amp; CABLE">WIRE &amp; CABLE</option>
               </select>
             </div>
             <div class="rb-field">
@@ -1108,7 +1127,7 @@
           </div>
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
             <div class="rb-field">
-              <label>Supplier</label>
+              <label>Supplier *</label>
               <input type="text" id="ng-supplier" placeholder="e.g. Qatar Energy" autocomplete="off">
             </div>
             <div class="rb-field">
@@ -1984,11 +2003,12 @@
   window.rbSaveNewGrade = async function() {
     const name = document.getElementById('ng-name')?.value.trim();
     const group = document.getElementById('ng-group')?.value;
+    const supplier = document.getElementById('ng-supplier')?.value.trim() || '';
     if (!name) { showToast('Grade name is required', ''); return; }
     if (!group) { showToast('Polymer group is required', ''); return; }
+    if (!supplier) { showToast('Supplier is required', ''); return; }
 
     const sub = document.getElementById('ng-sub')?.value.trim() || '';
-    const supplier = document.getElementById('ng-supplier')?.value.trim() || '';
     const hs = document.getElementById('ng-hs')?.value.trim() || '';
     const application = document.getElementById('ng-application')?.value.trim() || '';
     const notes = document.getElementById('ng-notes')?.value.trim() || '';
