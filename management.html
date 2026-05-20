@@ -1080,6 +1080,57 @@
 
     <!-- Manage Grades panel -->
     <div id="rb-grades-panel" style="display:none">
+
+      <!-- Add New Grade -->
+      <div style="margin-bottom:14px">
+        <button onclick="rbToggleAddGrade()" id="rb-add-grade-btn" style="padding:9px 16px;background:var(--orange);color:#fff;border:none;border-radius:8px;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;cursor:pointer">+ Add New Grade</button>
+      </div>
+
+      <div id="rb-add-grade-form" style="display:none;background:var(--bg);border:1.5px solid var(--orange);border-radius:12px;padding:16px;margin-bottom:16px">
+        <div style="font-family:'Syne',sans-serif;font-size:14px;font-weight:700;color:var(--text);margin-bottom:14px">New Grade</div>
+        <div style="display:flex;flex-direction:column;gap:10px">
+          <div class="rb-field">
+            <label>Grade Name *</label>
+            <input type="text" id="ng-name" placeholder="e.g. LDPE FE8000" autocomplete="off">
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+            <div class="rb-field">
+              <label>Polymer Group *</label>
+              <select id="ng-group">
+                <option value="">Select group</option>
+                ${['ABS','BIO POLYMERS','DOW SPECIALITY','EVA','EVOH','HDPE','LDPE','LLDPE','MASTER BATCH','MDPE','MLLDPE','NYLON','PC','PCR','PET','PP','PPCP','PVC','SAN','WIRE & CABLE'].map(g => `<option value="${g}">${g}</option>`).join('')}
+              </select>
+            </div>
+            <div class="rb-field">
+              <label>Sub Group</label>
+              <input type="text" id="ng-sub" placeholder="e.g. LDPE LAMINATION" autocomplete="off">
+            </div>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+            <div class="rb-field">
+              <label>Supplier</label>
+              <input type="text" id="ng-supplier" placeholder="e.g. Qatar Energy" autocomplete="off">
+            </div>
+            <div class="rb-field">
+              <label>HS Code</label>
+              <input type="text" id="ng-hs" placeholder="e.g. 3901.10.00" autocomplete="off">
+            </div>
+          </div>
+          <div class="rb-field">
+            <label>Application</label>
+            <textarea id="ng-application" rows="2" placeholder="e.g. LDPE extrusion lamination and coating application"></textarea>
+          </div>
+          <div class="rb-field">
+            <label>Notes</label>
+            <textarea id="ng-notes" rows="2" placeholder="Any internal notes..."></textarea>
+          </div>
+          <div style="display:flex;gap:8px;margin-top:4px">
+            <button onclick="rbSaveNewGrade()" style="padding:10px 18px;background:var(--orange);color:#fff;border:none;border-radius:8px;font-family:'Syne',sans-serif;font-size:14px;font-weight:700;cursor:pointer">Save Grade</button>
+            <button onclick="rbToggleAddGrade()" style="padding:10px 18px;background:var(--bg);border:1.5px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:13px;cursor:pointer;color:var(--muted)">Cancel</button>
+          </div>
+        </div>
+      </div>
+
       <div class="rb-grade-search-wrap">
         <input type="text" id="rb-grade-search" placeholder="Search catalogue..." oninput="rbFilterGrades()" autocomplete="off">
       </div>
@@ -1915,7 +1966,65 @@
     }
   };
 
-  // ── Manage Grades ──
+  window.rbToggleAddGrade = function() {
+    const form = document.getElementById('rb-add-grade-form');
+    const isShowing = form.style.display !== 'none';
+    form.style.display = isShowing ? 'none' : 'block';
+    document.getElementById('rb-add-grade-btn').textContent = isShowing ? '+ Add New Grade' : '✕ Cancel';
+    if (!isShowing) {
+      // Clear form
+      ['ng-name','ng-sub','ng-supplier','ng-hs','ng-application','ng-notes'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.value = '';
+      });
+      document.getElementById('ng-group').value = '';
+    }
+  };
+
+  window.rbSaveNewGrade = async function() {
+    const name = document.getElementById('ng-name')?.value.trim();
+    const group = document.getElementById('ng-group')?.value;
+    if (!name) { showToast('Grade name is required', ''); return; }
+    if (!group) { showToast('Polymer group is required', ''); return; }
+
+    const sub = document.getElementById('ng-sub')?.value.trim() || '';
+    const supplier = document.getElementById('ng-supplier')?.value.trim() || '';
+    const hs = document.getElementById('ng-hs')?.value.trim() || '';
+    const application = document.getElementById('ng-application')?.value.trim() || '';
+    const notes = document.getElementById('ng-notes')?.value.trim() || '';
+
+    // Generate a SAP-style ID — use timestamp to ensure uniqueness
+    const gradeId = 'CUSTOM_' + Date.now();
+
+    const btn = document.querySelector('#rb-add-grade-form button');
+    btn.disabled = true;
+    btn.textContent = 'Saving...';
+
+    try {
+      await setDoc(doc(db, 'grades', gradeId), {
+        grade_name: name,
+        group_name: group,
+        sub_group: sub,
+        supplier,
+        hs_code: hs,
+        application,
+        notes,
+        is_active: false,
+        tds_url: '',
+        last_updated: serverTimestamp(),
+      });
+      showToast(`${name} added to catalogue ✓`, 'success');
+      rbToggleAddGrade();
+      await loadGrades();
+      rbRenderGrades();
+    } catch(e) {
+      console.error(e);
+      showToast('Error saving grade. Try again.', '');
+    } finally {
+      btn.disabled = false;
+      btn.textContent = 'Save Grade';
+    }
+  };
   window.rbFilterGrades = function() {
     rbGradeQuery = document.getElementById('rb-grade-search').value;
     rbRenderGrades();
